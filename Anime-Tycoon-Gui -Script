@@ -1,0 +1,104 @@
+local plr = game.Players.LocalPlayer
+local char = plr.Character or plr.CharacterAdded:Wait()
+
+local gui = Instance.new("ScreenGui", plr:WaitForChild("PlayerGui"))
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 250, 0, 300)
+frame.Position = UDim2.new(0.1, 0, 0.1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
+frame.Draggable = true
+frame.Active = true
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundColor3 = Color3.fromRGB(25,25,25)
+title.Text = "Anime Tycoon GUI"
+title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 22
+
+local function createButton(text, y, callback)
+    local btn = Instance.new("TextButton", frame)
+    btn.Size = UDim2.new(0, 230, 0, 40)
+    btn.Position = UDim2.new(0, 10, 0, y)
+    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextSize = 20
+    btn.Text = text
+    btn.MouseButton1Click:Connect(callback)
+    return btn
+end
+
+-- State flags
+local autoCollecting = false
+local autoBuying = false
+
+-- Auto Collect Cash toggle button
+local autoCollectBtn = createButton("Auto Collect Cash: OFF", 40, function()
+    autoCollecting = not autoCollecting
+    autoCollectBtn.Text = "Auto Collect Cash: " .. (autoCollecting and "ON" or "OFF")
+    
+    if autoCollecting then
+        spawn(function()
+            while autoCollecting do
+                task.wait(1.5)
+                local tycoon = nil
+                for _,v in pairs(workspace.Tycoons:GetChildren()) do
+                    if v:FindFirstChild("Owner") and v.Owner.Value == plr then
+                        tycoon = v
+                        break
+                    end
+                end
+                if tycoon then
+                    local collector = tycoon:FindFirstChild("Essentials") and tycoon.Essentials:FindFirstChild("CollectCash")
+                    if collector then
+                        firetouchinterest(char.HumanoidRootPart, collector, 0)
+                        task.wait(0.1)
+                        firetouchinterest(char.HumanoidRootPart, collector, 1)
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- Auto Buy Buttons toggle
+local autoBuyBtn = createButton("Auto Buy Buttons: OFF", 90, function()
+    autoBuying = not autoBuying
+    autoBuyBtn.Text = "Auto Buy Buttons: " .. (autoBuying and "ON" or "OFF")
+
+    if autoBuying then
+        spawn(function()
+            while autoBuying do
+                task.wait(2)
+                local tycoon = nil
+                for _,v in pairs(workspace.Tycoons:GetChildren()) do
+                    if v:FindFirstChild("Owner") and v.Owner.Value == plr then
+                        tycoon = v
+                        break
+                    end
+                end
+                if tycoon and tycoon:FindFirstChild("Buttons") then
+                    for _,btn in pairs(tycoon.Buttons:GetDescendants()) do
+                        if btn:IsA("Part") and btn.Name:lower():find("buy") then
+                            firetouchinterest(char.HumanoidRootPart, btn, 0)
+                            task.wait(0.1)
+                            firetouchinterest(char.HumanoidRootPart, btn, 1)
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- Speed Boost button (one-time)
+createButton("Speed Boost", 140, function()
+    char:WaitForChild("Humanoid").WalkSpeed = 100
+end)
+
+-- Jump Boost button (one-time)
+createButton("Jump Boost", 190, function()
+    char:WaitForChild("Humanoid").JumpPower = 120
+end)
